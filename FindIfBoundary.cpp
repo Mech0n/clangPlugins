@@ -19,7 +19,55 @@ public:
 
     bool VisitIfStmt(IfStmt *ifStmt) {
         // TODO: Complete code.
+        llvm::errs() << "Found an if statement:\n";
+
+        Stmt *ifBody = ifStmt->getThen();
+        printBoundary(ifBody);
+
+        Stmt *elseBody = ifStmt->getElse();
+        while (elseBody) {
+            if (auto *elseIfStmt = dyn_cast<IfStmt>(elseBody)) {
+                llvm::errs() << "Found an else if statement:\n";
+                ifBody = elseIfStmt->getThen();
+                printBoundary(ifBody);
+                elseBody = elseIfStmt->getElse();
+            } else {
+                llvm::errs() << "Found an else statement:\n";
+                printBoundary(elseBody);
+                break;
+            }
+        }
+
         return true;
+    }
+
+    void printBoundary(Stmt *stmt) {
+        SourceLocation startLoc = stmt->getBeginLoc();
+        SourceLocation endLoc = stmt->getEndLoc();
+
+        if (!startLoc.isValid() || !endLoc.isValid())
+            return;
+
+        SourceLocation expandedStartLoc = SourceMgr.getExpansionLoc(startLoc);
+        SourceLocation expandedEndLoc = SourceMgr.getExpansionLoc(endLoc);
+
+        if (!expandedStartLoc.isFileID() || !expandedEndLoc.isFileID())
+            return;
+
+        FileID startFileID = SourceMgr.getFileID(expandedStartLoc);
+        FileID endFileID = SourceMgr.getFileID(expandedEndLoc);
+
+        if (startFileID != endFileID)
+            return;
+
+        unsigned startOffset = SourceMgr.getFileOffset(expandedStartLoc);
+        unsigned endOffset = SourceMgr.getFileOffset(expandedEndLoc);
+
+        FileID fileID = startFileID;
+        llvm::StringRef fileContent = SourceMgr.getBufferData(fileID);
+        llvm::StringRef stmtSourceCode = fileContent.substr(startOffset, endOffset - startOffset);
+
+        llvm::errs() << "Source Code:\n" << stmtSourceCode << "\n\n";
     }
 };
 

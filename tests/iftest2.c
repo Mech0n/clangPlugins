@@ -5,7 +5,7 @@ int main() {
 
     if (num > 5) {
         printf("Number is greater than 5\n");
-	return 1;
+	    return 1;
     } else {
         printf("Number is less than or equal to 5\n");
     }

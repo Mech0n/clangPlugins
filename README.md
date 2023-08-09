@@ -50,7 +50,9 @@ if (num == 10) {
 
 - [x] `ViewIf.cpp` : View `if` block when transforming AST to IR. (test case)
 - [ ] `FindIfBoundaryAction.cpp` : find `if` block boundary when transforming AST to IR. (🚧)
-
+        - [x] Find the Boundary.
+        - [ ] How to save ?
+ 
 ### Q&A
 
 1. ~~`fatal error: 'stdio.h' file not found`~~
