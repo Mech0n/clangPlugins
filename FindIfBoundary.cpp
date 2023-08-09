@@ -39,6 +39,7 @@ public:
 class FindIfBoundaryAction : public PluginASTAction {
 protected:
     std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI, StringRef InFile) override {
+        CI.getPreprocessor().SetSuppressIncludeNotFoundError(true);
         return std::make_unique<FindIfBoundaryConsumer>(CI.getSourceManager(), CI.getLangOpts());
     }
 

@@ -67,6 +67,7 @@ public:
 class ViewIfASTPlugin : public PluginASTAction {
 protected:
     std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI, StringRef InFile) override {
+        CI.getPreprocessor().SetSuppressIncludeNotFoundError(true); // ignore header missing error.
         return std::make_unique<MyASTConsumer>(CI.getSourceManager(), CI.getLangOpts());
     }
 
