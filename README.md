@@ -53,7 +53,7 @@ if (num == 10) {
 
 ### Q&A
 
-1. ~~ `fatal error: 'stdio.h' file not found` ~~
+1. ~~`fatal error: 'stdio.h' file not found`~~
 
     [Answer](https://clang.llvm.org/docs/FAQ.html#i-run-clang-cc1-and-get-weird-errors-about-missing-headers)
 
