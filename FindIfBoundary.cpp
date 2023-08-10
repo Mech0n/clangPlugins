@@ -5,6 +5,8 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Sema/Sema.h"
 #include "llvm/Support/raw_ostream.h"
+#include <tuple>
+#include <vector>
 
 using namespace clang;
 
@@ -12,8 +14,12 @@ class FindIfBoundaryVisitor : public RecursiveASTVisitor<FindIfBoundaryVisitor> 
 private:
     SourceManager &SourceMgr;
     const LangOptions &LangOpts;
+    std::string fileName;
+    // ('file', 'start', 'end')
+    std::vector<std::tuple<std::string, unsigned, unsigned>> ifInfo;
 
 public:
+
     FindIfBoundaryVisitor(SourceManager &SM, const LangOptions &LO)
         : SourceMgr(SM), LangOpts(LO) {}
 
@@ -63,11 +69,31 @@ public:
         unsigned startOffset = SourceMgr.getFileOffset(expandedStartLoc);
         unsigned endOffset = SourceMgr.getFileOffset(expandedEndLoc);
 
+        unsigned startLine = SourceMgr.getSpellingLineNumber(expandedStartLoc);
+        unsigned endLine = SourceMgr.getSpellingLineNumber(expandedEndLoc);
+
         FileID fileID = startFileID;
         llvm::StringRef fileContent = SourceMgr.getBufferData(fileID);
         llvm::StringRef stmtSourceCode = fileContent.substr(startOffset, endOffset - startOffset);
 
+        // push the info in json.
+        const FileEntry *startFileEntry = SourceMgr.getFileEntryForID(startFileID);
+        if (!startFileEntry)
+            return;
+        llvm::StringRef startFilename = startFileEntry->getName();
+        fileName = startFilename;
+
+        ifInfo.emplace_back(std::make_tuple(startFilename, startLine, endLine));
+
         llvm::errs() << "Source Code:\n" << stmtSourceCode << "\n\n";
+    }
+
+    std::string getFileName() const {
+        return fileName;
+    }
+
+    std::vector<std::tuple<std::string, unsigned, unsigned>> getIfInfo() const {
+        return ifInfo;
     }
 };
 
@@ -81,6 +107,31 @@ public:
 
     void HandleTranslationUnit(ASTContext &Context) override {
         visitor.TraverseDecl(Context.getTranslationUnitDecl());
+
+        // save info in file.
+        std::vector ifInfo = visitor.getIfInfo();
+        std::string sourceFileName = visitor.getFileName();
+        std::string fileName = sourceFileName.append(".ifi");
+        llvm::errs() << fileName << "\n";
+        std::error_code errorCode;
+        llvm::raw_fd_ostream outputStream(fileName, errorCode, llvm::sys::fs::F_Text);
+
+        if (!errorCode) {
+            for (auto E : ifInfo) {
+                outputStream << std::get<0>(E) << " " << std::get<1>(E) << " " << std::get<2>(E) << "\n";
+            }
+            outputStream.close();
+        }
+    }
+
+    // Be of no use for the moment
+    std::string removeSuffix(const std::string& fileName) {
+        size_t lastDot = fileName.rfind('.');
+        if (lastDot != std::string::npos) {
+            return fileName.substr(0, lastDot);
+        }
+
+        return fileName;
     }
 };
 
@@ -93,12 +144,7 @@ protected:
 
     bool ParseArgs(const CompilerInstance &CI,
                 const std::vector<std::string>& args) override {
-    // for (unsigned i = 0, e = args.size(); i != e; ++i) {
-    //     if (args[i] == "-some-arg") {
-    //     // Handle the command line argument.
-    //     }
-    // }
-    return true;
+        return true;
     }
 };
 

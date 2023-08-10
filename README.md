@@ -55,9 +55,9 @@ if (num == 10) {
 ### TODO
 
 - [x] `ViewIf.cpp` : View `if` block when transforming AST to IR. (test case)
-- [ ] `FindIfBoundaryAction.cpp` : find `if` block boundary when transforming AST to IR. (🚧)
+- [x] `FindIfBoundaryAction.cpp` : find `if` block boundary when transforming AST to IR.
         - [x] Find the Boundary.
-        - [ ] How to save ?
+        - [x] Save into a `.ifi` file. (Finding a way not to use file but memory. 🚧)
  
 ### Q&A
 
