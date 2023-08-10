@@ -3,6 +3,10 @@ project(clangPlugins)
 
 find_package(LLVM 10 REQUIRED CONFIG)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 set(LT_LLVM_INSTALL_DIR "" CACHE PATH "LLVM installation directory")
 
 set(LT_LLVM_INCLUDE_DIR "${LT_LLVM_INSTALL_DIR}/include/llvm")

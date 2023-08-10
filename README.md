@@ -16,7 +16,10 @@ make -j
 Eg. Using `libViewIf.so`
 
 ```bash
+# Only clang frontend:
 clang -cc1 -load libViewIf.so -plugin view-if-ast  tests/iftest2.c
+# or
+clang -Xclang -add-plugin -fplugin=libViewIf.so -Xclang view-if-ast  ../tests/iftest2.c -o iftest2
 ```
 
 Output :
