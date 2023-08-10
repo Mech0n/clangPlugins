@@ -28,6 +28,12 @@ public:
         SourceLocation expandedStartLoc = SourceMgr.getExpansionLoc(startLoc);
         SourceLocation expandedEndLoc = SourceMgr.getExpansionLoc(endLoc);
 
+        const FileEntry *startFileEntry = SourceMgr.getFileEntryForID(SourceMgr.getFileID(startLoc));
+        if (!startFileEntry)
+            return true;
+        llvm::StringRef startFilename = startFileEntry->getName();
+        llvm::errs() << "File: " << startFilename << "\n";
+
         if (!expandedStartLoc.isFileID() || !expandedEndLoc.isFileID())
             return true;
 
@@ -44,7 +50,6 @@ public:
         llvm::StringRef fileContent = SourceMgr.getBufferData(fileID);
         llvm::StringRef ifSourceCode = fileContent.substr(startOffset, endOffset - startOffset);
 
-        llvm::errs() << "Condition: " << ifStmt->getCond() << "\n";
         llvm::errs() << "Source Code:\n" << ifSourceCode << "\n\n";
 
         return true; // Continue traversal
@@ -79,7 +84,3 @@ protected:
 
 static FrontendPluginRegistry::Add<ViewIfASTPlugin>
 X("view-if-ast", "View the AST of if statements");
-
-// extern "C" void clang_registerFrontendPlugin(clang::FrontendPluginRegistry::AddPluginFn Add) {
-//     Add(std::make_unique<ViewIfASTPlugin>());
-// }

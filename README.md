@@ -20,6 +20,9 @@ Eg. Using `libViewIf.so`
 clang -cc1 -load libViewIf.so -plugin view-if-ast  tests/iftest2.c
 # or
 clang -Xclang -add-plugin -fplugin=libViewIf.so -Xclang view-if-ast  ../tests/iftest2.c -o iftest2
+# Using in repo
+CC="clang -Xclang -add-plugin -fplugin=/path/to/libViewIf.so -Xclang view-if-ast"
+CXX="clang++ -Xclang -add-plugin -fplugin=/path/to/libViewIf.so -Xclang view-if-ast"
 ```
 
 Output :
