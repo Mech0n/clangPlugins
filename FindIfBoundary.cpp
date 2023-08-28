@@ -5,8 +5,9 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Sema/Sema.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/FileSystem.h"
 #include <tuple>
-#include <vector>
+#include <set>
 
 using namespace clang;
 
@@ -16,7 +17,7 @@ private:
     const LangOptions &LangOpts;
     std::string fileName;
     // ('file', 'start', 'end')
-    std::vector<std::tuple<std::string, unsigned, unsigned>> ifInfo;
+    std::set<std::tuple<std::string, unsigned, unsigned>> ifInfo;
 
 public:
 
@@ -81,9 +82,11 @@ public:
         if (!startFileEntry)
             return;
         llvm::StringRef startFilename = startFileEntry->getName();
+        llvm::SmallString<128> FilenameVec = StringRef(startFilename);
+        llvm::sys::fs::make_absolute(FilenameVec);
         fileName = startFilename;
 
-        ifInfo.emplace_back(std::make_tuple(startFilename, startLine, endLine));
+        ifInfo.insert(std::make_tuple(FilenameVec.str(), startLine, endLine));
 
         llvm::errs() << "Source Code:\n" << stmtSourceCode << "\n\n";
     }
@@ -92,7 +95,7 @@ public:
         return fileName;
     }
 
-    std::vector<std::tuple<std::string, unsigned, unsigned>> getIfInfo() const {
+    std::set<std::tuple<std::string, unsigned, unsigned>> getIfInfo() const {
         return ifInfo;
     }
 };
@@ -109,7 +112,7 @@ public:
         visitor.TraverseDecl(Context.getTranslationUnitDecl());
 
         // save info in file.
-        std::vector ifInfo = visitor.getIfInfo();
+        std::set ifInfo = visitor.getIfInfo();
         std::string sourceFileName = visitor.getFileName();
         std::string fileName = sourceFileName.append(".ifi");
         llvm::errs() << fileName << "\n";
